@@ -5,10 +5,11 @@ import sys
 from PIL import Image, ImageTk
 import numpy
 
-fileName = os.environ['ALLUSERSPROFILE'] + "\WebcamCap.txt"
+fileName = os.environ["ALLUSERSPROFILE"] + "\WebcamCap.txt"
 cancel = False
 
-def prompt_ok(event = 0):
+
+def prompt_ok(event=0):
     global cancel, button, button1, button2
     cancel = True
 
@@ -19,20 +20,21 @@ def prompt_ok(event = 0):
     button2.place(anchor=tk.CENTER, relx=0.8, rely=0.9, width=150, height=50)
     button1.focus()
 
-def saveAndExit(event = 0):
+
+def saveAndExit(event=0):
     global prevImg
 
-    if (len(sys.argv) < 2):
+    if len(sys.argv) < 2:
         filepath = "imageCap.png"
     else:
         filepath = sys.argv[1]
 
-    print ("Output file to: " + filepath)
+    print("Output file to: " + filepath)
     prevImg.save(filepath)
     mainWindow.quit()
 
 
-def resume(event = 0):
+def resume(event=0):
     global button1, button2, button, lmain, cancel
 
     cancel = False
@@ -40,9 +42,12 @@ def resume(event = 0):
     button1.place_forget()
     button2.place_forget()
 
-    mainWindow.bind('<Return>', prompt_ok)
-    button.place(bordermode=tk.INSIDE, relx=0.5, rely=0.9, anchor=tk.CENTER, width=300, height=50)
+    mainWindow.bind("<Return>", prompt_ok)
+    button.place(
+        bordermode=tk.INSIDE, relx=0.5, rely=0.9, anchor=tk.CENTER, width=300, height=50
+    )
     lmain.after(10, show_frame)
+
 
 def changeCam(event=0, nextCam=-1):
     global camIndex, cap, fileName
@@ -51,22 +56,23 @@ def changeCam(event=0, nextCam=-1):
         camIndex += 1
     else:
         camIndex = nextCam
-    del(cap)
+    del cap
     cap = cv2.VideoCapture(camIndex)
 
-    #try to get a frame, if it returns nothing
+    # try to get a frame, if it returns nothing
     success, frame = cap.read()
     if not success:
         camIndex = 0
-        del(cap)
+        del cap
         cap = cv2.VideoCapture(camIndex)
 
-    f = open(fileName, 'w')
+    f = open(fileName, "w")
     f.write(str(camIndex))
     f.close()
 
+
 try:
-    f = open(fileName, 'r')
+    f = open(fileName, "r")
     camIndex = int(f.readline())
 except:
     camIndex = 0
@@ -90,15 +96,20 @@ if not success:
 
 mainWindow = tk.Tk(screenName="Camera Capture")
 mainWindow.resizable(width=False, height=False)
-mainWindow.bind('<Escape>', lambda e: mainWindow.quit())
+mainWindow.bind("<Escape>", lambda e: mainWindow.quit())
 lmain = tk.Label(mainWindow, compound=tk.CENTER, anchor=tk.CENTER, relief=tk.RAISED)
 button = tk.Button(mainWindow, text="Capture", command=prompt_ok)
 button_changeCam = tk.Button(mainWindow, text="Switch Camera", command=changeCam)
 
 lmain.pack()
-button.place(bordermode=tk.INSIDE, relx=0.5, rely=0.9, anchor=tk.CENTER, width=300, height=50)
+button.place(
+    bordermode=tk.INSIDE, relx=0.5, rely=0.9, anchor=tk.CENTER, width=300, height=50
+)
 button.focus()
-button_changeCam.place(bordermode=tk.INSIDE, relx=0.85, rely=0.1, anchor=tk.CENTER, width=150, height=50)
+button_changeCam.place(
+    bordermode=tk.INSIDE, relx=0.85, rely=0.1, anchor=tk.CENTER, width=150, height=50
+)
+
 
 def show_frame():
     global cancel, prevImg, button
@@ -112,6 +123,7 @@ def show_frame():
     lmain.configure(image=imgtk)
     if not cancel:
         lmain.after(10, show_frame)
+
 
 show_frame()
 mainWindow.mainloop()

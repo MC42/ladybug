@@ -6,4 +6,3 @@ var = IntVar()
 
 c = Checkbutton(master, text="Expand", variable=var)
 c.pack()
-

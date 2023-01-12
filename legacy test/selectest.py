@@ -1,18 +1,24 @@
-
 import signal
 
 timeout = None
 
+
 def main():
-    inp = stdinWait("You have 5 seconds to type text and press <Enter>... ", "[no text]", 5, "Aw man! You ran out of time!!")
+    inp = stdinWait(
+        "You have 5 seconds to type text and press <Enter>... ",
+        "[no text]",
+        5,
+        "Aw man! You ran out of time!!",
+    )
     if not timeout:
         print("You entered", inp)
     else:
         print("You didn't enter anything because I'm on a tight schedule!")
-        
-def stdinWait(text, default, time, timeoutDisplay = None, **kwargs):
+
+
+def stdinWait(text, default, time, timeoutDisplay=None, **kwargs):
     signal.signal(signal.SIGALRM, interrupt)
-    signal.alarm(time) # sets timeout
+    signal.alarm(time)  # sets timeout
     global timeout
     try:
         inp = raw_input(text)
@@ -22,7 +28,7 @@ def stdinWait(text, default, time, timeoutDisplay = None, **kwargs):
         printInterrupt = kwargs.get("printInterrupt", True)
         if printInterrupt:
             print("Keyboard interrupt")
-        timeout = True # Do this so you don't mistakenly get input when there is none
+        timeout = True  # Do this so you don't mistakenly get input when there is none
         inp = default
     except:
         timeout = True
@@ -32,8 +38,10 @@ def stdinWait(text, default, time, timeoutDisplay = None, **kwargs):
         inp = default
     return inp
 
+
 def interrupt(signum, frame):
     raise Exception("")
+
 
 if __name__ == "__main__":
     main()
