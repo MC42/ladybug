@@ -2,13 +2,15 @@ import time
 import serial
 
 
-class MotionSystem:
+class MarlinMotion:
     def __init__(self, serial_port, baud):
         self.serial_port_info = serial_port
         self.baud = baud
 
-        self.serial_port = serial.Serial(self.serial_port_info, self.baud, timeout=1)
-        time.sleep(4)
+        self.serial_port = serial.Serial(self.serial_port_info, self.baud, timeout=None)
+
+        time.sleep(5)  # Sanity saver it seems.
+
         if not self.serial_port.is_open:
             self.restart_serial()
 
@@ -25,6 +27,13 @@ class MotionSystem:
 
         while self.has_data_waiting():
             self.serial_port.readline()
+
+    def stripGCodeOutput(self, input) -> list:
+        return [
+            x.decode("utf-8").strip()
+            for x in input
+            if x.decode("utf-8").strip() not in ["ok", "", "echo:busy: processing"]
+        ]
 
     def sendGCode(self, command, wait=False) -> list:
         if not self.serial_port.is_open:
@@ -53,16 +62,16 @@ class MotionSystem:
         pass
 
     def homeX(self):
-        self.sendGCode("G28 X;")
+        self.sendGCode("G28 X;", wait=True)
 
     def homeY(self):
-        self.sendGCode("G28 Y;")
+        self.sendGCode("G28 Y;", wait=True)
 
     def homeZ(self):
-        self.sendGCode("G28 Z;")
+        self.sendGCode("G28 Z;", wait=True)
 
     def homeAxes(self):
-        self.sendGCode("G28;")
+        self.sendGCode("G28;", wait=True)
 
     def close_serial(self):
         self.serial_port.close()
@@ -75,7 +84,6 @@ class MotionSystem:
         returned_lines = []
 
         while True:
-            time.sleep(0.01)
             temp_string = self.serial_port.readline()
             print(temp_string)
             returned_lines.append(temp_string)
@@ -95,10 +103,9 @@ class MotionSystem:
             while True:
                 try:
                     self.serial_port = serial.Serial(
-                        self.serial_port_info, self.baud, timeout=1
+                        self.serial_port_info, self.baud, timeout=None
                     )
                     print("trying to connect with serial module.")
-                    time.sleep(5)
                     if self.serial_port.isOpen():
                         return
 
@@ -106,13 +113,28 @@ class MotionSystem:
                     pass
 
     def get_location(self):
-        """https://marlinfw.org/docs/gcode/M114.html"""
-        returndat = self.sendGCode("M114 D R;", wait=True)
+        """
+        This functions tells us where we are in approximately real time
+        per the Marlin docs.  It may be imperfect, and should only be used
+        at stop _anyways_.
 
-        returndat = [
-            x.decode("utf-8").strip()
-            for x in returndat
-            if x.decode("utf-8").strip() not in ["ok", "", "echo:busy: processing"]
-        ]
+        TODO: Figure out how to detect stops.
+
+        https://marlinfw.org/docs/gcode/M114.html"""
+
+        returndat = self.sendGCode("M114 D;", wait=True)
+        returndat = self.stripGCodeOutput(returndat)
 
         print(returndat)
+
+    def deriveDimensions(self):
+        """
+        For the time being we can make the assumption that soft limits
+        are enabled on our CNC devices and as such we can use it to infer
+        the maximum movement area of the scanner and work around that.
+        """
+
+        returndat = self.stripGCodeOutput(self.sendGCode("M211;", wait=True))
+        print(returndat)
+
+        print("EOF")
