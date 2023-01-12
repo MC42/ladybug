@@ -25,7 +25,7 @@ def cvStitch(folder, output, extension=".png"):
         img = cv2.imread(file)
         imgList.append(img)
 
-    imgTuple = tuple(imgList)
+    tuple(imgList)
     stitched = stitcher.stitch(imgList)
     cv2.imwrite(os.path.join(output, os.path.basename(fileList[0])), stitched[1])
 

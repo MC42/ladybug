@@ -16,11 +16,8 @@ import re
 import os.path
 import cv2
 import argparse
-import operator
-import pprint
 from os import listdir
-from os.path import isfile, join
-from shutil import copyfile
+from os.path import isfile
 
 
 # code adapted from https://www.pyimagesearch.com/2015/09/07/blur-detection-with-opencv/
@@ -39,7 +36,6 @@ def variance_of_laplacian(image):
 
 def evalBlur(folder, AcceptableBlur=200):
     blurDict = {}
-    bestImages = []
     BadImages = []  # holds files to delete
 
     rawFolders = [x[0] for x in os.walk(folder)]
@@ -104,7 +100,6 @@ def sortBlur(folder, AcceptableBlur=200, FocusDictionary={}):
     # like RemoveBlur but uses passed in dictionary of focuses
 
     blurDict = {}
-    bestImages = []
     BadImages = []  # holds files to delete
 
     rawFolders = [x[0] for x in os.walk(folder)]

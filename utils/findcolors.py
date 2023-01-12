@@ -1,7 +1,6 @@
 # core from https://stackoverflow.com/questions/53258628/how-to-i-specify-the-upper-and-the-lower-value-of-a-color-in-hsv-opencv-python
 # modified to be a function and return color boundaries when asked
 
-import sys
 import cv2
 import numpy as np
 

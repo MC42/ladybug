@@ -21,7 +21,6 @@ from tkinter import filedialog
 import pickle  # for saving scan data and resuming
 import serial
 import subprocess
-import datetime
 import cv2
 import re  # regular expressions
 import threading
@@ -922,7 +921,7 @@ def FoundCoin(pic, threshold=50):
     else:
         CoinScore = CalculateBlur(pic)
 
-    Coinscore = round(CoinScore, 1)
+    round(CoinScore, 1)
 
     if CoinScore < threshold:
         return True, CoinScore
@@ -1634,7 +1633,7 @@ def InterlaceZ(ScanLocations, ZCoord):
     # Advanced: Z Height depends on X/Y location as opposed to comprehensive
     XLocations = ScanLocations["X"]
     YLocations = ScanLocations["Y"]
-    ZLocations = ScanLocations["Z"]
+    ScanLocations["Z"]
     RLocations = ScanLocations["R"]
 
     NewX = []
@@ -2240,7 +2239,7 @@ def FindZFocus(
 
     # index of coord closest to current location for speed optimization
     index = np.argmin(np.abs(np.array(ZCoord) - GlobalZ))
-    initial = ZCoord[index]
+    ZCoord[index]
 
     counter = 0
     ZTraveled = []

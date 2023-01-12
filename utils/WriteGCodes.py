@@ -11,7 +11,7 @@ from definescan import *
 def GenerateCode(x, y, z, r=0, f="100"):
 
     # generates a line of absolute Gcode for a list of values. literally just stringing
-    StepsPerMM = 100
+    pass
 
     line = "G1"
     line += " X" + str(round(x, 4))
@@ -42,7 +42,6 @@ def main():
         z = a["Z"][i]
         line = GenerateCode(x, y, z)
         print(line)
-    pass
 
 
 if __name__ == "__main__":

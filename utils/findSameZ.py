@@ -10,7 +10,6 @@ Yujie and Ahron.
 
 import os
 import argparse
-import sys
 from shutil import copyfile
 from collections import defaultdict
 

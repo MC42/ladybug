@@ -8,7 +8,6 @@ from imutils.video import FPS
 import numpy as np
 import cv2
 import imutils
-import time
 
 
 def BallTracker(

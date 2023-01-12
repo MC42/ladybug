@@ -2,7 +2,6 @@
 # and turns that into an attempted greyscale image
 
 import pickle
-import os
 import statistics
 from PIL import Image
 import numpy as np
