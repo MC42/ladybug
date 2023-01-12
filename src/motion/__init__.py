@@ -45,7 +45,26 @@ class MarlinMotion:
             if x.decode("utf-8").strip() not in ["ok", "", "echo:busy: processing"]
         ]
 
-    def sendGCode(self, command, wait=False) -> list:
+    def sendGCode(self, command, wait=True) -> list:
+        """
+        This is a funnction originally lifted from the original Windowsgui.py file
+        and adapted to instead exist here standalone.
+        
+        The gist is "check that the serial port is open explicitly, if not, open it 
+        and don't release until it does.
+        
+        Then, encode the data, wrap it up to ensure a newline is sent and avoid
+         sillyness from that.
+        
+        If we care to, wait for the printer/device to send us an "ok" in response, 
+        so we keep the commands sent and the commands the printer has executed in 
+        sync.  This also minimizes risk of position desync.
+
+        The "wait" command defaults to `True` now, though in the future it's possible
+        that positional gets removed entirely.  Don't make a habit of forgetting it
+        in either case.
+        """
+
         if not self.serial_port.is_open:
             self.restart_serial()
 
