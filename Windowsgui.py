@@ -6,6 +6,9 @@
 # December 28 2020: It has been a heck of a year since March 16.
 # December 14 21: New computer, probably new dev cycle. AKA spaghetti
 
+# Attempting to unspaghettify this whole project.
+# 2023/01/23 - Kim.
+
 
 from numpy import *  # for generating scan parameters
 import time
@@ -34,6 +37,13 @@ import utils.track_ball as ObjectTracker
 import utils.findcolors as findcolors  # for object tracking with color
 import circlify  # for calculating evenly spaced points within circle for autofocus
 import serial.tools.list_ports
+
+from src.util import RemoveBlank, coin_CalculateBlur, ConvertPixelToXY
+from src.lights import DinoLite
+
+global dinoLite
+dinoLite = DinoLite()
+
 
 # dictionary passed into gridscan. At minimum must change
 # scanlocations! Can be made with definescan
@@ -377,19 +387,6 @@ def StackStitchFolder(folder, PixelsPerMM=370, grid=(32, 32), GiantSize="default
     return MajorImage, DepthImage, ZMap
 
 
-def RemoveBlank(image):
-    # https://stackoverflow.com/questions/13538748/crop-black-edges-with-opencv
-    # Expensively removes black/blank boundaries of large image
-
-    if len(image.shape) == 2:  # quick fix for 2D images
-        y_nonzero, x_nonzero = np.nonzero(image)
-    else:
-        y_nonzero, x_nonzero, _ = np.nonzero(image)
-    return image[
-        np.min(y_nonzero) : np.max(y_nonzero), np.min(x_nonzero) : np.max(x_nonzero)
-    ]
-
-
 def MoveToPixelLocation(XPix, YPix, Z=-1, PixelsPerMM=370):
     # moves to pixel location with idealized grid with bottom left zero
     # moves to center of that image (bad?)
@@ -407,29 +404,6 @@ def MoveToPixelLocation(XPix, YPix, Z=-1, PixelsPerMM=370):
     pic = MoveConfirmSnap(FinXPos, FinYPos, Z, cap)
 
     return pic, FinXPos, FinYPos, FinXPix, FinYPix
-
-
-def ConvertPixelToXY(XPix, YPix, PixelsPerMM=370, debug=True):
-    # convert pixel to NEAREST 0.1 XY locations.
-    # Returns XY location and REAL XPix and YPix gone to
-    RawXPos = XPix / PixelsPerMM
-    RawYPos = YPix / PixelsPerMM
-
-    NearestXPos = round(RawXPos, 1)  # round to 0.1 MM
-    NearestYPos = round(RawYPos, 1)
-
-    NearestXPix = round(NearestXPos * PixelsPerMM, 2)  # will be float
-    NearestYPix = round(NearestYPos * PixelsPerMM, 2)
-
-    if debug:
-        print(
-            """At desired XPix {} and desired YPix {},
-    The closest X mm is: {} and the Closest Y mm is: {},
-    which corresponds to XPixel {} and YPixel {}""".format(
-                XPix, YPix, NearestXPos, NearestYPos, NearestXPix, NearestYPix
-            )
-        )
-    return (NearestXPos, NearestYPos, NearestXPix, NearestYPix)
 
 
 def SmushScan(positions, PixelsPerMM=370):
@@ -552,18 +526,6 @@ def SendGCode(GCode, machine="ladybug"):
     BytesGCode = GCode.encode("utf-8")
     machine.write(BytesGCode)
     # time.sleep(0.02) #this is for potential conflicts of calling gcodes too fast
-
-
-def EngageSteppers(machine="ladybug"):
-    if machine == "ladybug":
-        machine = LadyBug
-
-
-def TurnOnFan(speed=250, machine="ladybug"):  # up to 250, adjust if shrieking
-    if machine == "ladybug":
-        machine = LadyBug
-    gcode = "M106 S" + str(speed)
-    SendGCode(gcode)
 
 
 def DisengageSteppers():
@@ -690,7 +652,7 @@ def WaitForConfirmMovements(X, Y, Z, attempts=100):  # 50 is several seconds
     return False
 
 
-def RestartSerial(port=-1, BAUD=-1, timeout=1):  # from 0.1 to 1 for timeout test
+def RestartSerial(port=4, BAUD=-1, timeout=1):  # from 0.1 to 1 for timeout test
 
     PossibleBauds = [115200]  # expand as more options are known
 
@@ -768,6 +730,10 @@ Or press enter to try all available ports automatically.
         print("Unable to connect. Um... jiggle the cables?")
 
 
+def EngageSteppers():
+    pass
+
+
 def TryToConnect(port, BAUD, timeout, return_anyway=False):
 
     global LadyBug
@@ -830,7 +796,7 @@ def TryToConnect(port, BAUD, timeout, return_anyway=False):
 
 def UpdateFocusDict(FocusDictionary, location, pic):
     # used to allow threaded calculation of focus during time waits
-    blur = CalculateBlur(pic)
+    blur = coin_CalculateBlur(pic)
     FocusDictionary[location] = blur
 
 
@@ -848,7 +814,7 @@ def CloseSerial(machine="ladybug"):
         pass
 
 
-def CircleDemo(cap, speed=500):  # finds outline, focuses, goes around edge
+""" def CircleDemo(cap, speed=500):  # finds outline, focuses, goes around edge
     param = CalculateOutline()
     xc, yc, r = param[0], param[1], param[2]
     MoveConfirmSnap(xc, yc, GlobalZ, cap)
@@ -856,7 +822,7 @@ def CircleDemo(cap, speed=500):  # finds outline, focuses, goes around edge
     MoveConfirmSnap(xc, yc - (r - 2), focus, cap)
     SendGCode("G2 I0 J{} F{}".format(r - 1.5, speed))
     # Arc shape. Move back a bit to center around edge.
-    return (xc, yc, r)
+    return (xc, yc, r) """
 
 
 def MakeArc(XCenter, YCenter, Radius, Z=-1, speed="default"):
@@ -888,7 +854,7 @@ def FoundCoin(pic, threshold=50):
     if is_dark(pic):  # light = coin if brightness very low
         CoinScore = threshold + 1
     else:
-        CoinScore = CalculateBlur(pic)
+        CoinScore = coin_CalculateBlur(pic)
 
     round(CoinScore, 1)
 
@@ -1020,7 +986,7 @@ def AutoCoin(
             if is_dark(CoinFocusPic):  # prevent focusing on edges
                 print("off the edge AKA dark pic, don't count this one")
                 continue
-            elif CalculateBlur(CoinFocusPic) < 100:  # not dark, still blurry
+            elif coin_CalculateBlur(CoinFocusPic) < 100:  # not dark, still blurry
                 print("ignoring blurry location")
                 continue
 
@@ -1204,7 +1170,7 @@ def SortOrStackPipe(
         positions = MakePositionsFromName(name)
         if positions not in FocusDictionary:  # calculate blur and add to dictionary
             pic = cv2.imread(name)
-            blur = CalculateBlur(pic)
+            blur = coin_CalculateBlur(pic)
             FocusDictionary[positions] = blur
 
     with open(ParentFolder + "\\FocusDictionary.pkl", "wb") as FocusFile:
@@ -1370,7 +1336,6 @@ def CalculateOutline(
     shape="coin",
     SearchDistance=40,
     Precision=1,
-    FOVLOW=1,
 ):
     """calculates outline of an object (for now a coin).
     If your coin is oblong, place the longer side along the Y axis
@@ -1626,7 +1591,7 @@ def InterlaceZ(ScanLocations, ZCoord):
     return ScanLocations
 
 
-def RotateScan(ScanLocations, degrees=30):
+""" def RotateScan(ScanLocations, degrees=30):
     # function to rotate a 3D array around a specified axis (currently Y). Ideally, around arb point in space.
     # X Location minus offset becomes new hypotenuse after rotating.
     # (sin(degrees) * X) + Z gives new Z .
@@ -1644,7 +1609,7 @@ def RotateScan(ScanLocations, degrees=30):
 
     ScanLocations["X"] = XLocations
     ScanLocations["Z"] = ZLocations
-    return ScanLocations
+    return ScanLocations """
 
 
 # all assumes cv2 here
@@ -1679,11 +1644,6 @@ def SavePicture(name, frame):  # name includes locations and extension
         os.makedirs(folder)
 
     cv2.imwrite(name, frame)
-
-
-def CalculateBlur(frame):
-    blur = cv2.Laplacian(frame, cv2.CV_64F).var()
-    return blur
 
 
 def ShowPicture(frame):
@@ -2215,7 +2175,7 @@ def FindZFocus(
         time.sleep(0.05)  # vibration control
 
         frame = TakePicture(camera)
-        blur = CalculateBlur(frame)
+        blur = coin_CalculateBlur(frame)
 
         if GoingUp:
             frames.append(frame)
@@ -2267,23 +2227,6 @@ def FindZFocus(
         ZFocus, BestFrame = FindZFocus(ZCoord="narrow")  # recursive needs to return
 
     return (ZFocus, BestFrame)
-
-
-def ControlDino(setting="FLCLevel 6"):
-    """uses dinolite windows batch file to control settings on EDGE plus model.
-    FLCLevel: 1-6 brightness, if  0 convert to LED off
-    FLCSwitch: control quadrants, value is 1111, 1010...
-    AE on
-    AE off (locks current exposure value)
-    EV: sets exposure values 16-220, strange behavior
-    """
-
-    if "FLCLevel" in setting:
-        subprocess.call("DN_DS_Ctrl.exe LED ON")  # can't change FLC if it's already off
-        if "0" in setting:
-            setting = "LED off"
-
-    subprocess.call("DN_DS_Ctrl.exe " + setting)
 
 
 def MakeFolderFromPositions(X, Y, Z, R, ParentFolder, FileType=".jpg"):
@@ -2951,34 +2894,23 @@ SecondaryBottomFrame = tk.Frame(BottomFrame)
 SecondaryBottomFrame.pack(side=tk.TOP)
 
 
-# oct 2021 try except block now catches use of controldino
-# AKA remove hardcoded resume save state
-# Completely different from original pi version anyway
-
 try:
-
     cap = StartCamera()
     frame = TakePicture(cap)  # for testing
 
     LadyBug = RestartSerial()  # initiate GCODE based machine
     StartThreadedCamera()  # This is the main opencv window you interact with
-
-    # HomeX()
-    # HomeY()
-    # HomeZ()
     print("Press H to home, F to autofocus, D to autostack, space takes pic")
     print("i,j,k,l move XY, - + move Z axis")
 
-    ControlDino("FLCLevel 6")
+    dinoLite.control("FLCLevel 6")
     print("setting DinoLite level to FLC 6, assuming you are using one rn")
     print("assuming starting at optimum exposure location")
     print('run command ControlDino("AE on") to turn exposure back on')
-    ControlDino("AE off")
+    dinoLite.control("AE off")
 
 except FileNotFoundError:
     print("hmm, seems you don't have dinolite controls installed ")
 
 except OSError:  # "side by side configuration incorrect"
     print("hmm, seems like dinolite controls is installed improperly")
-
-print("Lets scan some stuff")
