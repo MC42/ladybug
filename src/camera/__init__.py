@@ -16,6 +16,21 @@ class Camera:
             return True
         return False
 
+    def setFocus(self, focus_step: int) -> bool:
+        """
+        Allegedly permits us to set the individual camera's focal length manually.  Not
+        sure how to re-enable automatic mode yet.  We'll see.
+
+        https://stackoverflow.com/a/42819965
+        https://github.com/opencv/opencv/issues/9738#issuecomment-346584044
+        https://stackoverflow.com/a/56102838
+        """
+
+        if self.cap is not None:
+            self.cap.set(28, focus_step)
+            return True
+        return False
+
     def getHighestResolution(self, setResolution=False) -> tuple:
         """
         This function uses the highest resolution example for OpenCV that seems to
@@ -43,6 +58,19 @@ class Camera:
     def takePicture(self):
         ret, frame = self.cap.read()
         return frame
+
+    def takeNPictures(self, quantity: int) -> list:
+        """
+        Takes in a quantity, produces N frames off of the camera.  Be sure to let it
+        idle for a little bit before capturing, and disable automatic exposure / focus
+        if need be for the sensor above.
+        """
+        frames = []
+        for i in range(quantity):
+            ret, frame = self.cap.read()
+            frames.append(frame)
+
+        return frames
 
     def closeCamera(self):
         self.cap.release()

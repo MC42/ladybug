@@ -13,7 +13,7 @@ class MarlinMotion:
         # Attempting to open a port does not render it immediately
         # avalible for use.  This may be a hassle but it's far easier
         # than dealing with the cross-platform errata of just... waiting.
-        time.sleep(5)  
+        time.sleep(5)
 
         if not self.serial_port.is_open:
             self.restart_serial()
@@ -35,10 +35,10 @@ class MarlinMotion:
     def stripGCodeOutput(self, input) -> list:
         """
         This helper is here to remove extraneous returns from the percieved output of the microscope apparatus
-        without impeding our ability to use it or debug it.  So it's stripped after calls.  This also means that 
+        without impeding our ability to use it or debug it.  So it's stripped after calls.  This also means that
         the "waitForOk" code could be hooked into a logging framework fairly easily.
         """
-        
+
         return [
             x.decode("utf-8").strip()
             for x in input
@@ -49,15 +49,15 @@ class MarlinMotion:
         """
         This is a funnction originally lifted from the original Windowsgui.py file
         and adapted to instead exist here standalone.
-        
-        The gist is "check that the serial port is open explicitly, if not, open it 
+
+        The gist is "check that the serial port is open explicitly, if not, open it
         and don't release until it does.
-        
+
         Then, encode the data, wrap it up to ensure a newline is sent and avoid
          sillyness from that.
-        
-        If we care to, wait for the printer/device to send us an "ok" in response, 
-        so we keep the commands sent and the commands the printer has executed in 
+
+        If we care to, wait for the printer/device to send us an "ok" in response,
+        so we keep the commands sent and the commands the printer has executed in
         sync.  This also minimizes risk of position desync.
 
         The "wait" command defaults to `True` now, though in the future it's possible
