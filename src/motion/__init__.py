@@ -16,14 +16,12 @@ class MotionSystem:
             "M84 S36000;"
         )  # tells it not to turn off motors for S seconds (default 60 grr)
         self.sendGCode("M302 P1;", wait=True)  # prevents errors from 'cold' extrusion
-        self.sendGCode(
-            "M203 Z5;", wait=True
-        )  # lets z go a bit faster. disabled if using weak nano motor
+        # self.sendGCode("M203 Z5;", wait=True)  # lets z go a bit faster. disabled if using weak nano motor
         self.sendGCode("M17;", wait=True)  # engage steppers
 
         # We explicitly set our units to millimeters here to avoid any potential coordinate
         # system mishaps.  Yay!
-        self.sendGCOde("M21;", wait=True)
+        self.sendGCode("M21;", wait=True)
 
         while self.has_data_waiting():
             self.serial_port.readline()
@@ -81,7 +79,7 @@ class MotionSystem:
             temp_string = self.serial_port.readline()
             print(temp_string)
             returned_lines.append(temp_string)
-            if "ok" in temp_string.decode("utf-8").strip():
+            if temp_string.decode("utf-8").strip() == "ok":
                 return returned_lines
 
     def has_data_waiting(self) -> bool:
@@ -109,12 +107,12 @@ class MotionSystem:
 
     def get_location(self):
         """https://marlinfw.org/docs/gcode/M114.html"""
-        returndat = self.sendGCode("M114 R;", wait=True)
+        returndat = self.sendGCode("M114 D R;", wait=True)
 
         returndat = [
             x.decode("utf-8").strip()
             for x in returndat
-            if x.decode("utf-8").strip() not in ["ok"]
+            if x.decode("utf-8").strip() not in ["ok", "", "echo:busy: processing"]
         ]
 
         print(returndat)
