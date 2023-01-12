@@ -558,15 +558,7 @@ def EngageSteppers(machine="ladybug"):
     if machine == "ladybug":
         machine = LadyBug
 
-    SendGCode(
-        "M84 S36000"
-    )  # tells it not to turn off motors for S seconds (default 60 grr)
-    time.sleep(0.05)
-    SendGCode("M302 P1")  # prevents errors from 'cold' extrusion
-    time.sleep(0.05)
-    SendGCode("M203 Z5")  # lets z go a bit faster. disabled if using weak nano motor
-    # time.sleep(0.05) #disabled for NANO. uncomment if Z too slow
-    SendGCode("M17")  # engage steppers
+    
 
 
 def TurnOnFan(speed=250, machine="ladybug"):  # up to 250, adjust if shrieking
