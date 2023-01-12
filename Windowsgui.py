@@ -558,8 +558,6 @@ def EngageSteppers(machine="ladybug"):
     if machine == "ladybug":
         machine = LadyBug
 
-    
-
 
 def TurnOnFan(speed=250, machine="ladybug"):  # up to 250, adjust if shrieking
     if machine == "ladybug":
