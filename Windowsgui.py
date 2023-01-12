@@ -16,8 +16,7 @@ import os
 import shutil
 import string
 import tkinter as tk  # contains GUI, can be removed if converted to headless
-from tkinter import font
-from tkinter import filedialog
+from tkinter import font, filedialog
 import pickle  # for saving scan data and resuming
 import serial
 import subprocess
@@ -191,7 +190,6 @@ def CombineImages(XLow, XHigh, YLow, YHigh, MinorImage, MajorImage):
         # print('YLow is {} YHigh is {}  XLow is {} XHigh is {}'.format(YLow,YHigh,XLow,XHigh))
         print("You stepped out of bounds. You should really do something about that")
         # should increase the size of the image
-        # DoubleImage
 
     return MajorImage
 
@@ -377,11 +375,6 @@ def StackStitchFolder(folder, PixelsPerMM=370, grid=(32, 32), GiantSize="default
     DepthImage = DepthImage.astype(uint8)  # .astype result of 3 hrs work
 
     return MajorImage, DepthImage, ZMap
-
-
-def DoubleImage(ParentImage):
-    # Does the yujie thing and doubles the image
-    pass  # lol where do you extend it
 
 
 def RemoveBlank(image):
@@ -849,20 +842,6 @@ def UpdateFocusDict(FocusDictionary, location, pic):
     # used to allow threaded calculation of focus during time waits
     blur = CalculateBlur(pic)
     FocusDictionary[location] = blur
-
-
-def FocusDemo(cap):
-    # Tinyscopecap is first camera with built in autofocus
-    # turns out it's really easy to alter with opencv
-    # this is just so I don't forget the commands
-
-    cap.set(cv2.CAP_PROP_AUTOFOCUS, 0)
-
-    for i in range(5):
-        for i in range(0, 255, 5):
-            cap.set(cv2.CAP_PROP_FOCUS, i)
-        for i in range(255, 0, -5):
-            cap.set(cv2.CAP_PROP_FOCUS, i)
 
 
 def CloseSerial(machine="ladybug"):
@@ -1712,11 +1691,6 @@ def SavePicture(name, frame):  # name includes locations and extension
     cv2.imwrite(name, frame)
 
 
-def CloseCamera(cap):
-
-    cap.release()
-
-
 def CalculateBlur(frame):
     blur = cv2.Laplacian(frame, cv2.CV_64F).var()
     return blur
@@ -2115,23 +2089,6 @@ def GenerateZ(LowZ, HighZ, Precision):
         LowZ = round(LowZ + Precision, 2)
 
     return ZHeights
-
-
-def CalculateStepSize(
-    PixelsPerStep=370, XOverlap=40, YOverlap=40, XWidth=640, YHeight=480
-):
-    # returns correct amount to move X and Y for desired amount of overlap and pixel size.
-    # Step in PixelsPerStep can refer to literal steps or just mm. mm easier
-    # overlap in percent
-
-    XSteps = round(
-        XWidth / PixelsPerStep - (((XOverlap / 100) * XWidth) / PixelsPerStep), 3
-    )
-    YSteps = round(
-        YHeight / PixelsPerStep - (((YOverlap / 100) * YHeight) / PixelsPerStep), 3
-    )
-
-    return XSteps, YSteps
 
 
 def DivideCircle(XCenter, YCenter, Radius, Divisions, ScanLocations=None):
@@ -2630,47 +2587,6 @@ def YGet(event):
         print("Please enter a real number")
 
 
-def MoveT(direction, numsteps, delay, ZXCorrect=False):
-    # tilt motor. Should probably have a way to initialize and prevent going over range
-    GPIO.output(TDIR, direction)
-    global GlobalT
-
-    CorrectZAfter = False
-
-    if (
-        ZXCorrect == True
-    ):  # dynamically correct X and Z position. Maybe should be in TGoTo instead
-        initial = GlobalT
-        if direction == TFORWARD:  # don't judge me repeating this twice ok
-            final = GlobalT + numsteps
-        else:
-            final = GlobalT - numsteps
-
-        Corrected_X, Corrected_Z = TiltCorrection(initial, final)
-
-        XGoTo(Corrected_X)
-
-        if Corrected_Z <= GlobalZ:  # if Z goes down, move Z first then tilt.
-            ZGoTo(Corrected_Z)
-        else:
-            CorrectZAfter = True  # correct Z after tilt if moving up
-
-        # actually move tilt now
-
-    for i in range(numsteps):
-        GPIO.output(TSTEP, GPIO.HIGH)
-        time.sleep(delay)
-        GPIO.output(TSTEP, GPIO.LOW)
-
-    if CorrectZAfter:
-        ZGoTo(Corrected_Z)
-    if direction == TFORWARD:
-        GlobalT += numsteps
-    else:
-        GlobalT -= numsteps
-    # more stuff should go here at some point
-
-
 def ZGet(event):
     """records enter press from text box (ZEntry) and calls "go to specified location function"""
     try:
@@ -2875,28 +2791,6 @@ def MoveZUpSmall():
     (ZGoTo(GlobalZ + LittleZ), print("Z increased by", LittleZ)) if (
         GlobalZ + LittleZ
     ) < ZMax else (ZGoTo(ZMax), print("Z at Max ({})".format(ZMax)))
-
-
-def MoveRCWSmall():
-    # cw when staring down at spindle or object
-    MoveR(RFORWARD, 40, SLOW)  # increased to 40 for finder Beefy
-    print("You rotated something clockwise a bit!")
-
-
-def MoveRCCWSmall():  # counterclockwise
-    MoveR(RBACKWARD, 40, SLOW)
-    print("You rotated something counterclockwise a bit!")
-
-
-def MoveTUpSmall():
-    # tilt 5th axis added jan 28 2020
-    MoveT(TFORWARD, 8, SLOW)
-    print("You tilted something up a bit!")
-
-
-def MoveTDownSmall():
-    MoveT(TBACKWARD, 8, SLOW)
-    print("You tilted something down a bit!")
 
 
 def StartThreadedCamera(FollowBool=False, Width=1280, Height=960):
