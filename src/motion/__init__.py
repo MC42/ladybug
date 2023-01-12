@@ -9,7 +9,11 @@ class MarlinMotion:
 
         self.serial_port = serial.Serial(self.serial_port_info, self.baud, timeout=None)
 
-        time.sleep(5)  # Sanity saver it seems.
+        # Sanity saver it seems.
+        # Attempting to open a port does not render it immediately
+        # avalible for use.  This may be a hassle but it's far easier
+        # than dealing with the cross-platform errata of just... waiting.
+        time.sleep(5)  
 
         if not self.serial_port.is_open:
             self.restart_serial()
@@ -29,6 +33,12 @@ class MarlinMotion:
             self.serial_port.readline()
 
     def stripGCodeOutput(self, input) -> list:
+        """
+        This helper is here to remove extraneous returns from the percieved output of the microscope apparatus
+        without impeding our ability to use it or debug it.  So it's stripped after calls.  This also means that 
+        the "waitForOk" code could be hooked into a logging framework fairly easily.
+        """
+        
         return [
             x.decode("utf-8").strip()
             for x in input
