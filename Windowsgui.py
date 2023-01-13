@@ -70,7 +70,8 @@ DefaultScan = {
 
 
 # Distances from home position in steps for each motor.
-# Starts at "0" so if you don't have any switches just move them there before running the program.
+# Starts at "0" so if you don't have any switches just move them there
+# before running the program.
 
 
 GlobalX = 0  # left and right (on finder)
@@ -80,7 +81,8 @@ GlobalR = 0  # keep same naming scheme, but R = rotation
 
 PixelsPerMM = 370  # This will cause hellfire if used incorrectly...
 
-# These are scan parameters intended to be set by the GUI and can otherwise be ignored
+# These are scan parameters intended to be set by the GUI and can
+# otherwise be ignored
 
 XScanMin = 0
 XScanMax = 0
@@ -127,7 +129,8 @@ def ConvertXYToPixelLocations(
     # a super gigantic image that encompassed the whole possible build plate
     # This keeps everyone on same page when image resizes and stuff
     # remember: Indexing is top left with opencv, but we want it to be bottom left!
-    # We're leaving it at bottom left in this function, but when we smush we have to convert it
+    # We're leaving it at bottom left in this function, but when we smush we
+    # have to convert it
 
     if X == -1:
         X = GlobalX
@@ -177,7 +180,13 @@ def GoToSmush(
         ImageYHeight=ImageYHeight,
     )
 
-    MajorImage = CombineImages(XLow, XHigh, YLow, YHigh, MinorImage, MajorImage)
+    MajorImage = CombineImages(
+        XLow,
+        XHigh,
+        YLow,
+        YHigh,
+        MinorImage,
+        MajorImage)
     return MajorImage
 
 
@@ -194,9 +203,8 @@ def CombineImages(XLow, XHigh, YLow, YHigh, MinorImage, MajorImage):
     except ValueError:  # MajorImage was too small
         print(
             "The shape of MinorImage is {} and the shape of Major is {}".format(
-                shape(MinorImage), shape(MajorImage)
-            )
-        )
+                shape(MinorImage),
+                shape(MajorImage)))
         # print('YLow is {} YHigh is {}  XLow is {} XHigh is {}'.format(YLow,YHigh,XLow,XHigh))
         print("You stepped out of bounds. You should really do something about that")
         # should increase the size of the image
@@ -249,7 +257,8 @@ def StackFolder(folder, StackedOutputFolder, ZMapOutputFolder, grid=(32, 32)):
             frames.append(frame)
             ZCoord.append(Z)
 
-        Stacked, IndexMap = max_pool_subdivided_images_3d(frames, grid)  # stack
+        Stacked, IndexMap = max_pool_subdivided_images_3d(
+            frames, grid)  # stack
         TrueZ3D = GetTrueZ3D(IndexMap, ZCoord)  # convert map into raw Z values
 
         DepthImage = NormalizeZMap(
@@ -267,7 +276,11 @@ def StackFolder(folder, StackedOutputFolder, ZMapOutputFolder, grid=(32, 32)):
     print("Done stacking folders")
 
 
-def StitchFolder(folder, PixelsPerMM=370, GiantSize="default", StitchZMap=False):
+def StitchFolder(
+        folder,
+        PixelsPerMM=370,
+        GiantSize="default",
+        StitchZMap=False):
 
     if GiantSize == "default":  # Quick fix to work with low res scans
         # GiantSize = min(int(26000/PixelsPerMM),120)
@@ -306,7 +319,8 @@ def StitchFolder(folder, PixelsPerMM=370, GiantSize="default", StitchZMap=False)
             X, Y, PixelsPerMM
         )  # offset target?
         if not StitchZMap:
-            MajorImage = CombineImages(XLow, XHigh, YLow, YHigh, frame, MajorImage)
+            MajorImage = CombineImages(
+                XLow, XHigh, YLow, YHigh, frame, MajorImage)
         else:  # Banish the 3rd dimension
             MajorImage = CombineImages(
                 XLow, XHigh, YLow, YHigh, frame[:, :, 0], MajorImage
@@ -318,13 +332,20 @@ def StitchFolder(folder, PixelsPerMM=370, GiantSize="default", StitchZMap=False)
     MajorImage = RemoveBlank(MajorImage)
 
     if StitchZMap:
-        MajorImage = NormalizeZMap(MajorImage)  # problem: "blank space" is 0...
+        # problem: "blank space" is 0...
+        MajorImage = NormalizeZMap(MajorImage)
         MajorImage = MajorImage.astype(uint8)  # .astype result of 3 hrs work
 
     return MajorImage
 
 
-def StackStitchFolder(folder, PixelsPerMM=370, grid=(32, 32), GiantSize="default"):
+def StackStitchFolder(
+        folder,
+        PixelsPerMM=370,
+        grid=(
+            32,
+            32),
+        GiantSize="default"):
     # returns stacked and stitched big image along with depthmap
     # expects folders to be already ZSorted
     # grid is how divided images are. Acceptable: 32, 40, 80, 160 (higher = slow)
@@ -367,12 +388,20 @@ def StackStitchFolder(folder, PixelsPerMM=370, grid=(32, 32), GiantSize="default
             frames.append(frame)
             ZCoord.append(Z)
 
-        Stacked, IndexMap = max_pool_subdivided_images_3d(frames, grid)  # stack
+        Stacked, IndexMap = max_pool_subdivided_images_3d(
+            frames, grid)  # stack
         TrueZ3D = GetTrueZ3D(IndexMap, ZCoord)  # convert map into raw Z values
         XLow, XHigh, YLow, YHigh = ConvertXYToPixelLocations(X, Y, PixelsPerMM)
 
-        MajorImage = CombineImages(XLow, XHigh, YLow, YHigh, Stacked, MajorImage)
-        ZMap = CombineImages(XLow, XHigh, YLow, YHigh, TrueZ3D, ZMap)  # the problem
+        MajorImage = CombineImages(
+            XLow, XHigh, YLow, YHigh, Stacked, MajorImage)
+        ZMap = CombineImages(
+            XLow,
+            XHigh,
+            YLow,
+            YHigh,
+            TrueZ3D,
+            ZMap)  # the problem
 
     print("cleaning up final images...")
 
@@ -425,7 +454,8 @@ def SmushScan(positions, PixelsPerMM=370):
     name = "capture\\Smush test from X {} to {}, Y {} to {} .jpg".format(
         str(XStart), str(X), str(YStart), str(Y)
     )
-    SavePicture(name, MajorImage)  # no batching, all images are in memory. Careful!
+    # no batching, all images are in memory. Careful!
+    SavePicture(name, MajorImage)
 
 
 def SmushDemo(StartX=7.5, StartY=4, StartZ=7.9):
@@ -459,7 +489,8 @@ def MakeGiantImage(
 ):  # floats for using with decimal z heights
     # Will initialize a HUGE blank image to encompass the maximum possible search area
     # And which will then have real image information filled in
-    # Because Yujie says that it's more efficient to do this than to expand on command
+    # Because Yujie says that it's more efficient to do this than to expand on
+    # command
     XPixels = round(PixelsPerMM * (CanvasXMax - CanvasXMin))
     YPixels = round(PixelsPerMM * (CanvasYMax - CanvasYMin))
 
@@ -525,7 +556,8 @@ def SendGCode(GCode, machine="ladybug"):
     # return(GCode)
     BytesGCode = GCode.encode("utf-8")
     machine.write(BytesGCode)
-    # time.sleep(0.02) #this is for potential conflicts of calling gcodes too fast
+    # time.sleep(0.02) #this is for potential conflicts of calling gcodes too
+    # fast
 
 
 def DisengageSteppers():
@@ -551,14 +583,16 @@ def GetPositions(machine="ladybug", tries=3):
 
     time.sleep(sleeptime)
 
-    for i in range(tries):  # communication back and forth not instant, i for failsafe
+    for i in range(
+            tries):  # communication back and forth not instant, i for failsafe
         try:
             dump = machine.read_until().decode("utf-8", "ignore")
             # kept in bytes. read_all inconsistent. Ignore added for K1 printer
 
         except serial.SerialTimeoutException():  # other exceptions found here
 
-            print("Serial Timeout Exception")  # This NEVER is what gets tripped.
+            # This NEVER is what gets tripped.
+            print("Serial Timeout Exception")
             # with easythreed, this fails with cannot inherit from base class
             return False
 
@@ -566,12 +600,12 @@ def GetPositions(machine="ladybug", tries=3):
 
         if "Count" in dump:  # precedes actual position data
             try:
-                remainder = dump[dump.find("Count") :]  # has actual position
+                remainder = dump[dump.find("Count"):]  # has actual position
 
-                Xraw = remainder[remainder.find("X:") : remainder.find("Y")]
-                Yraw = remainder[remainder.find("Y:") : remainder.find("Z")]
+                Xraw = remainder[remainder.find("X:"): remainder.find("Y")]
+                Yraw = remainder[remainder.find("Y:"): remainder.find("Z")]
                 Zraw = remainder[
-                    remainder.find("Z:") : (
+                    remainder.find("Z:"): (
                         remainder.find("E") if "E" in remainder else None
                     )
                 ]  # E sometimes in remainderadded for Nano
@@ -628,7 +662,8 @@ def WaitForConfirmMovements(X, Y, Z, attempts=100):  # 50 is several seconds
         if positions:
 
             if (
-                math.isclose(X, positions["X"], abs_tol=0.1)  # microns getting lost
+                # microns getting lost
+                math.isclose(X, positions["X"], abs_tol=0.1)
                 and math.isclose(Y, positions["Y"], abs_tol=0.1)
                 and math.isclose(Z, positions["Z"], abs_tol=0.1)
             ):
@@ -640,7 +675,8 @@ def WaitForConfirmMovements(X, Y, Z, attempts=100):  # 50 is several seconds
                     print(
                         "This one gets stuck in a loop when it fails"
                     )  # new computer, no
-                    # possibly caused by long movements first, just an observation with callibrateplate
+                    # possibly caused by long movements first, just an
+                    # observation with callibrateplate
 
                     return False  # Different failure condition than unable to communicate. Bad inputs
 
@@ -673,11 +709,14 @@ def RestartSerial(port=4, BAUD=-1, timeout=1):  # from 0.1 to 1 for timeout test
             LadyBug = TryToConnect(port, BAUD, timeout=timeout)
 
             if LadyBug:
-                # LadyBug checks if connected machine. GetPositions checks if data can be returned
+                # LadyBug checks if connected machine. GetPositions checks if
+                # data can be returned
                 FoundMachine = True
                 break
             else:
-                print("Failed to connect with port {}, BAUD {}".format(port, BAUD))
+                print(
+                    "Failed to connect with port {}, BAUD {}".format(
+                        port, BAUD))
                 inputstr = input(
                     """
 
@@ -708,7 +747,8 @@ Or press enter to try all available ports automatically.
         ports = []
         for i in serial.tools.list_ports.comports():
             ports.append(str(i).split(" ")[0])
-        PortsAndBauds = [[a, b] for a in ports for b in PossibleBauds if a != b]
+        PortsAndBauds = [[a, b]
+                         for a in ports for b in PossibleBauds if a != b]
         for val in PortsAndBauds:  # zipped together so we only need one break
             port, BAUD = val[0], val[1]
             LadyBug = TryToConnect(port, BAUD, timeout)
@@ -717,7 +757,10 @@ Or press enter to try all available ports automatically.
                 break
 
     if FoundMachine:
-        print("Successful connection on port {} with Baud rate {}".format(port, BAUD))
+        print(
+            "Successful connection on port {} with Baud rate {}".format(
+                port,
+                BAUD))
         time.sleep(1)
         EngageSteppers()
         time.sleep(1)
@@ -760,7 +803,8 @@ def TryToConnect(port, BAUD, timeout, return_anyway=False):
         try:
             LadyBug = serial.Serial(port, BAUD, timeout=timeout)
             print("trying to connect with serial.serial...", end=" ")
-            time.sleep(5)  # this 5 instead of 1 represents 3 hours of frustration
+            # this 5 instead of 1 represents 3 hours of frustration
+            time.sleep(5)
             if LadyBug:
                 if "serial" in str(type(LadyBug)):
                     print("it has a serial in it...", end=" ")
@@ -771,9 +815,7 @@ def TryToConnect(port, BAUD, timeout, return_anyway=False):
                         if GetPositions():  # sometimes first getpos don't work
                             print(
                                 "and returns positions after {} attempts. Woo!".format(
-                                    j + 1
-                                )
-                            )
+                                    j + 1))
                             return LadyBug
 
                     else:
@@ -886,7 +928,8 @@ def AutoCoin(
     # automatically calculate the radius of the coin
     # and scan it within autofocused-determined parameter
 
-    XMovement, YMovement = round(FieldOfView * 0.8, 1), round(FieldOfView * 0.6, 1)
+    XMovement, YMovement = round(
+        FieldOfView * 0.8, 1), round(FieldOfView * 0.6, 1)
 
     positions = GetPositions()
 
@@ -961,9 +1004,7 @@ def AutoCoin(
         if BasicHeight <= BuildPlate + 0.1:  # too close, another false positive
             print(
                 "False Positive, focus height at {}, bottom surface at {}".format(
-                    BasicHeight, BuildPlate
-                )
-            )
+                    BasicHeight, BuildPlate))
             continue
 
         if DrawCoolArc:  # this does absolutely nothing useful
@@ -1000,8 +1041,9 @@ def AutoCoin(
             # Add to FocusDictionary here
 
         FocusList = GenerateZ(
-            min(FocusSet) - DepthOfField, max(FocusSet) + DepthOfField, DepthOfField
-        )  # comprehensive search +1
+            min(FocusSet) - DepthOfField,
+            max(FocusSet) + DepthOfField,
+            DepthOfField)  # comprehensive search +1
 
         # FocusList = sorted(list(FocusSet))
 
@@ -1038,7 +1080,8 @@ def AutoCoin(
             ScanName = "Scan " + time.strftime("%Y%m%d-%H%M%S")
             folder = SaveLocation + ScanName
 
-            if not os.path.exists(folder):  # To save in the same folder after restart
+            if not os.path.exists(
+                    folder):  # To save in the same folder after restart
                 os.makedirs(folder)
 
             DefaultScan["Save Location"] = folder
@@ -1135,9 +1178,11 @@ def SortOrStackPipe(
     # decide if stacking is worth it for any image sets, and if it is,
     # will put those in its own special folder and in future attempt stack
     # TO PREVENT NEED FOR STACKING set the acceptable blur to a high number
-    # amended to work with pickle'd dictionary file before calculating values again
+    # amended to work with pickle'd dictionary file before calculating values
+    # again
 
-    rawFolders = [x[0] for x in os.walk(ParentFolder) if os.path.isdir(x[0])][1:]
+    rawFolders = [x[0]
+                  for x in os.walk(ParentFolder) if os.path.isdir(x[0])][1:]
 
     originals = ParentFolder + "\\Originals (sorted by Z height)"
 
@@ -1216,7 +1261,8 @@ def SortOrStackPipe(
         extension=extension,
         FocusDictionary=FocusDictionary,
     )
-    # do the same thing again with a high blur amount to get best of stackable images for the lazy
+    # do the same thing again with a high blur amount to get best of stackable
+    # images for the lazy
     RemoveBlurry.main(
         BestPerStack,
         AcceptableBlur=50000,
@@ -1232,7 +1278,8 @@ def SortOrStackPipe(
     for folder in ImageFolders:
         files = os.listdir(folder)
         if len(files) == 1:
-            source, dest = folder + "\\" + files[0], StitchMix + "\\" + files[0]
+            source, dest = folder + "\\" + \
+                files[0], StitchMix + "\\" + files[0]
             os.link(source, dest)
         else:  # move to new directory for stacking. Can't link entire directory for some reason
             count += 1
@@ -1250,15 +1297,20 @@ def SortOrStackPipe(
     for folder in LazyFolders:
         files = os.listdir(folder)
         if len(files) == 1:
-            source, dest = folder + "\\" + files[0], StitchThese + "\\" + files[0]
+            source, dest = folder + "\\" + \
+                files[0], StitchThese + "\\" + files[0]
             os.link(source, dest)
 
     print("{} images need to be stacked before optimal stitching".format(count))
 
     # 51521 adding automatic stack and stitch
-    if StackStitchBool == True:
+    if StackStitchBool:
         print("stacking folders in automatic pipeline")
-        StackFolder(DeBlurred, StackedOutputFolder, ZMapOutputFolder, grid=grid)
+        StackFolder(
+            DeBlurred,
+            StackedOutputFolder,
+            ZMapOutputFolder,
+            grid=grid)
         print("stacking done, stitching now")
         StitchedImg = StitchFolder(
             StackedOutputFolder,
@@ -1266,7 +1318,10 @@ def SortOrStackPipe(
             GiantSize="default",
             StitchZMap=False,
         )
-        SavePicture(ParentFolder + "\\Auto stacked and stitched.jpg", StitchedImg)
+        SavePicture(
+            ParentFolder +
+            "\\Auto stacked and stitched.jpg",
+            StitchedImg)
         print("saved auto stacked and stitched image. Use ICE for superior quality!")
         StitchedImg = StitchFolder(
             ZMapOutputFolder,
@@ -1282,10 +1337,26 @@ def SortOrStackPipe(
 
 def MakeNameFromPositions(X, Y, Z, R, FileType=".jpg"):
 
-    XStr = ("".join(filter(lambda i: i.isdigit(), ("{0:.2f}".format(X))))).zfill(5)
-    YStr = ("".join(filter(lambda i: i.isdigit(), ("{0:.2f}".format(Y))))).zfill(5)
-    ZStr = ("".join(filter(lambda i: i.isdigit(), ("{0:.2f}".format(Z))))).zfill(5)
-    RStr = ("".join(filter(lambda i: i.isdigit(), ("{0:.2f}".format(R))))).zfill(5)
+    XStr = (
+        "".join(
+            filter(
+                lambda i: i.isdigit(),
+                ("{0:.2f}".format(X))))).zfill(5)
+    YStr = (
+        "".join(
+            filter(
+                lambda i: i.isdigit(),
+                ("{0:.2f}".format(Y))))).zfill(5)
+    ZStr = (
+        "".join(
+            filter(
+                lambda i: i.isdigit(),
+                ("{0:.2f}".format(Z))))).zfill(5)
+    RStr = (
+        "".join(
+            filter(
+                lambda i: i.isdigit(),
+                ("{0:.2f}".format(R))))).zfill(5)
     name = "X" + XStr + "Y" + YStr + "Z" + ZStr + "R" + RStr + FileType
     return name
 
@@ -1455,8 +1526,8 @@ def CalculateOutline(
         else:
 
             print(
-                "Found coin at X: {}, Y: {}, Radius {}".format(XMiddle, YMiddle, Radius)
-            )
+                "Found coin at X: {}, Y: {}, Radius {}".format(
+                    XMiddle, YMiddle, Radius))
 
         return (XMiddle, YMiddle, Radius)
 
@@ -1647,22 +1718,29 @@ def SavePicture(name, frame):  # name includes locations and extension
 
 
 def ShowPicture(frame):
-    cv2.imshow("X:" + str(GlobalX) + " Y:" + str(GlobalY) + " Z:" + str(GlobalZ), frame)
+    cv2.imshow(
+        "X:" +
+        str(GlobalX) +
+        " Y:" +
+        str(GlobalY) +
+        " Z:" +
+        str(GlobalZ),
+        frame)
 
 
 """
 def MoveFromClick(event,x,y,flags,param):
     #Moves to put clicked on area in center
     #right now more annoying than helpful
-    
+
     if param:
         PixelsPerUnit = param(0)
-        
+
     else:
         PixelsPerUnit = 50 #number of pixels per mill
-    
+
     if event == cv2.EVENT_FLAG_LBUTTON:
-        print('movefromclickactivated')    
+        print('movefromclickactivated')
         KeepBugInCenter(x,y,PixelsPerUnit=PixelsPerUnit)
 
 """
@@ -1682,7 +1760,8 @@ def ShowCamera(
     # or some other third smaller solution
 
     if cap == False:  # else pass in an explicit cap
-        cap = cv2.VideoCapture(camera_choice)  # default 1 if on laptop with webcam
+        # default 1 if on laptop with webcam
+        cap = cv2.VideoCapture(camera_choice)
 
     # tracking variables
     fps = None
@@ -1707,7 +1786,8 @@ def ShowCamera(
 
     ColorLower, ColorUpper = ColorLowers[ColorsIndex], ColorUppers[ColorsIndex]
 
-    if not os.path.exists(StackPath):  # Show stacked pics taken from out of main loop
+    if not os.path.exists(
+            StackPath):  # Show stacked pics taken from out of main loop
         os.makedirs(StackPath)
     StackedPics = [
         os.path.join(StackPath, fn)
@@ -1747,7 +1827,8 @@ def ShowCamera(
 
         if k % 256 == 32:  # this and video capture now before frame modification
             # SPACE pressed take picture
-            img_name = MakeNameFromPositions(GlobalX, GlobalY, GlobalZ, GlobalR, ".jpg")
+            img_name = MakeNameFromPositions(
+                GlobalX, GlobalY, GlobalZ, GlobalR, ".jpg")
             if img_name == prev_img_name:
                 counter += 1
                 img_name = str(counter) + img_name
@@ -1768,20 +1849,50 @@ def ShowCamera(
             print("Escape hit, closing...")
             break
 
-        if k % 256 == ord("j"):  # can't figure out arrow keys. ijkl for movement
-            AllGoTo(
-                GlobalX - LittleXY, GlobalY, GlobalZ, update=False, speed=XSpeed
-            )  # thread problems. dont update position
+        if k % 256 == ord(
+                "j"):  # can't figure out arrow keys. ijkl for movement
+            AllGoTo(GlobalX - LittleXY, GlobalY, GlobalZ, update=False,
+                    speed=XSpeed)  # thread problems. dont update position
         if k % 256 == ord("l"):
-            AllGoTo(GlobalX + LittleXY, GlobalY, GlobalZ, update=False, speed=XSpeed)
+            AllGoTo(
+                GlobalX +
+                LittleXY,
+                GlobalY,
+                GlobalZ,
+                update=False,
+                speed=XSpeed)
         if k % 256 == ord("i"):
-            AllGoTo(GlobalX, GlobalY + LittleXY, GlobalZ, update=False, speed=YSpeed)
+            AllGoTo(
+                GlobalX,
+                GlobalY +
+                LittleXY,
+                GlobalZ,
+                update=False,
+                speed=YSpeed)
         if k % 256 == ord("k"):
-            AllGoTo(GlobalX, GlobalY - LittleXY, GlobalZ, update=False, speed=YSpeed)
+            AllGoTo(
+                GlobalX,
+                GlobalY -
+                LittleXY,
+                GlobalZ,
+                update=False,
+                speed=YSpeed)
         if k % 256 == ord("-"):
-            AllGoTo(GlobalX, GlobalY, GlobalZ - LittleZ, update=False, speed=ZSpeed)
+            AllGoTo(
+                GlobalX,
+                GlobalY,
+                GlobalZ -
+                LittleZ,
+                update=False,
+                speed=ZSpeed)
         if k % 256 == ord("="):  # - and + but + is shifted
-            AllGoTo(GlobalX, GlobalY, GlobalZ + LittleZ, update=False, speed=ZSpeed)
+            AllGoTo(
+                GlobalX,
+                GlobalY,
+                GlobalZ +
+                LittleZ,
+                update=False,
+                speed=ZSpeed)
         if k % 256 == ord("f"):  # AutoFocus
             y = threading.Thread(target=FindZFocus)  # update image during
             y.start()
@@ -1813,10 +1924,14 @@ def ShowCamera(
             except NameError:
                 # VideoName = time.asctime().replace(" ","") + '.avi'
                 VideoName = (
-                    SavePath
-                    + "Vid starting at "
-                    + MakeNameFromPositions(GlobalX, GlobalY, GlobalZ, GlobalR, ".mp4")
-                )
+                    SavePath +
+                    "Vid starting at " +
+                    MakeNameFromPositions(
+                        GlobalX,
+                        GlobalY,
+                        GlobalZ,
+                        GlobalR,
+                        ".mp4"))
                 out = cv2.VideoWriter(
                     VideoName,
                     cv2.VideoWriter_fourcc("H", "2", "6", "4"),
@@ -1907,8 +2022,13 @@ def ShowCamera(
 
 
 def KeepBugInCenter(
-    ObjectX, ObjectY, PixelsPerUnit=200, Width=640, Height=480, thresh=30, speed=2000
-):
+        ObjectX,
+        ObjectY,
+        PixelsPerUnit=200,
+        Width=640,
+        Height=480,
+        thresh=30,
+        speed=2000):
     # we want to make X and Y be center of the frame --- width and height/2
     # calls motion accordingly...
     # this should be PID loop ideally
@@ -2074,7 +2194,6 @@ def CallibratePlate(
     Precision=0.1,
     ShowImage=False,
 ):
-
     """a 3 or whatever point leveling system that just reports the point of
     max focus at coordinate points of interest (usually 3 thumbscrews).
     Only approximately accurate to within a camera's depth of field"""
@@ -2094,7 +2213,8 @@ def CallibratePlate(
         XGoTo(XPoint)
         YGoTo(YPoint)
         time.sleep(2)
-        WaitForConfirmMovements(XPoint, YPoint, GlobalX)  # adds margin on top of sleep
+        # adds margin on top of sleep
+        WaitForConfirmMovements(XPoint, YPoint, GlobalX)
 
         Focus, FocusImage = FindZFocus(ZHeights, GoToFocus=False)
         Focuses.append(Focus)
@@ -2224,14 +2344,23 @@ def FindZFocus(
         AllGoTo(GlobalX, GlobalY, ZFocus, update=False)
 
     if ScannedBroad:  # slightly more efficient "where am I" scan
-        ZFocus, BestFrame = FindZFocus(ZCoord="narrow")  # recursive needs to return
+        ZFocus, BestFrame = FindZFocus(
+            ZCoord="narrow")  # recursive needs to return
 
     return (ZFocus, BestFrame)
 
 
 def MakeFolderFromPositions(X, Y, Z, R, ParentFolder, FileType=".jpg"):
-    ZStr = ("".join(filter(lambda i: i.isdigit(), ("{0:.2f}".format(Z))))).zfill(5)
-    RStr = ("".join(filter(lambda i: i.isdigit(), ("{0:.2f}".format(R))))).zfill(5)
+    ZStr = (
+        "".join(
+            filter(
+                lambda i: i.isdigit(),
+                ("{0:.2f}".format(Z))))).zfill(5)
+    RStr = (
+        "".join(
+            filter(
+                lambda i: i.isdigit(),
+                ("{0:.2f}".format(R))))).zfill(5)
     folder = (
         ParentFolder + "/Z" + ZStr + "R" + RStr
     )  # will make new folder on each change in Z or R
@@ -2258,7 +2387,8 @@ def GridScan(ScanConditions):  # DefaultScan dictionary available for modifying
     Height = ScanConditions["Height"]
     FileType = ScanConditions["FileType"]
     Failures = ScanConditions["Failures"]
-    ScanRates = ScanConditions["ScanRates"]  # how fast takes pictures periodically
+    # how fast takes pictures periodically
+    ScanRates = ScanConditions["ScanRates"]
     AutoFocus = ScanConditions["AutoFocus"]  # true or false
     PotentialZ = ScanConditions["Z Heights"]
     PointInScan = ScanConditions["PointInScan"]
@@ -2284,7 +2414,8 @@ def GridScan(ScanConditions):  # DefaultScan dictionary available for modifying
         for setting in CameraSettings[:-1]:
             ControlDino(setting)
             time.sleep(2)
-        ControlDino(setting)  # why wait 2 seconds between commands if you don't have to
+        # why wait 2 seconds between commands if you don't have to
+        ControlDino(setting)
 
     for i in range(
         PointInScan, len(XCoord)
@@ -2347,16 +2478,18 @@ def GridScan(ScanConditions):  # DefaultScan dictionary available for modifying
                     )  # should rework to allow walking
 
                 # picture and focus info saving block
-                # 5 digits total with 2 decimals always and leading and trailing 0s if necessary
-                folder = MakeFolderFromPositions(X, Y, Z, R, save_location, FileType)
+                # 5 digits total with 2 decimals always and leading and
+                # trailing 0s if necessary
+                folder = MakeFolderFromPositions(
+                    X, Y, Z, R, save_location, FileType)
                 name = MakeNameFromPositions(X, Y, Z, R, FileType)
 
                 SavePicThread = threading.Thread(
                     target=SavePicture, args=((folder + "/" + name), frame)
                 )
                 FocusThread = threading.Thread(
-                    target=UpdateFocusDict, args=(FocusDictionary, (X, Y, Z, R), frame)
-                )
+                    target=UpdateFocusDict, args=(
+                        FocusDictionary, (X, Y, Z, R), frame))
                 FocusThread.start()  # hopefully allows usefulness during idle sleep times
                 SavePicThread.start()
 
@@ -2385,7 +2518,8 @@ def GridScan(ScanConditions):  # DefaultScan dictionary available for modifying
             Failures.append([X, Y, Z, R])
 
     # end of scan, retaking failed pictures goes here
-    print("Failures: {}".format(Failures))  # ints for serial and locations for pictures
+    # ints for serial and locations for pictures
+    print("Failures: {}".format(Failures))
     print(
         "scan completed successfully! Time taken: {}".format(
             time.strftime("%H:%M:%S", time.gmtime(time.time() - start_time))
@@ -2402,7 +2536,8 @@ def GridScan(ScanConditions):  # DefaultScan dictionary available for modifying
     except Exception:
         print("Unable to save focus dictionary")
 
-    # go back to beginning simplifies testing, but could also set a park position
+    # go back to beginning simplifies testing, but could also set a park
+    # position
     XGoTo(XCoord[0])
     YGoTo(YCoord[0])
     if not AutoFocus:  # Crash number 3
@@ -2456,13 +2591,15 @@ def AllGoTo(
     speed=3000,
     update=False,
 ):
-    # set update to True or False to update or not Tkinter (can mess up threads)
+    # set update to True or False to update or not Tkinter (can mess up
+    # threads)
     global GlobalX, GlobalY, GlobalZ, GlobalR
 
     if XDest < 0 or XDest > XMax:  # Can't declare global at runtime...
         XDest = GlobalX
     if YDest < 0 or YDest > YMax:
-        YDest = GlobalY  # can't set = 0 as false because 0 is valid location...
+        # can't set = 0 as false because 0 is valid location...
+        YDest = GlobalY
     if ZDest < 0 or ZDest > ZMax:
         ZDest = GlobalZ  # can do 'default' but bah.
     if RDest < 0:
@@ -2481,7 +2618,8 @@ def AllGoTo(
 
     if update:
 
-        # not updating tkinter allows function to be called from threaded process
+        # not updating tkinter allows function to be called from threaded
+        # process
 
         XPosition.configure(text="X: " + str(GlobalX) + "/" + str(XMax))
         YPosition.configure(text="Y: " + str(GlobalY) + "/" + str(YMax))
@@ -2605,7 +2743,8 @@ def InitiatePCBTools():
         try:
             if choice.lower() == "all":
                 print("this may take a sec. traveling salesman problem grr")
-                PathChoice, TotalDistance = ShortestPath(ListOfCoordinateTuples)
+                PathChoice, TotalDistance = ShortestPath(
+                    ListOfCoordinateTuples)
                 print("got it! optimum distance = {} mm ".format(TotalDistance))
                 for node in PathChoice:
                     component = DesignatorKeys[node]
@@ -2614,8 +2753,10 @@ def InitiatePCBTools():
                         location[0], location[1]
                     )  # NOTE. breaks genericness of any size coordinates
                     WaitForConfirmMovements(location[0], location[1], GlobalZ)
-                    time.sleep(0.1)  # for vibration, could be longer for human inpu
-                    frame = TakePicture(cap)  # assumes you already opened cam preview
+                    # for vibration, could be longer for human inpu
+                    time.sleep(0.1)
+                    # assumes you already opened cam preview
+                    frame = TakePicture(cap)
                     SavePicture(component + ".jpg", frame)
 
             else:
@@ -2625,8 +2766,10 @@ def InitiatePCBTools():
                 )  # NOTE. breaks genericness of any size coordinates
 
                 WaitForConfirmMovements(location[0], location[1], GlobalZ)
-                time.sleep(0.1)  # for vibration, could be longer for human input
-                frame = TakePicture(cap)  # assumes you already opened cam preview
+                # for vibration, could be longer for human input
+                time.sleep(0.1)
+                # assumes you already opened cam preview
+                frame = TakePicture(cap)
                 SavePicture(choice + ".jpg", frame)
         except KeyError:
             print("Sorry, invalid choice in key or programmer")
@@ -2776,8 +2919,12 @@ YForwardBigButton = tk.Button(
 YForwardBigButton.pack(side=tk.TOP)
 
 YForwardSmallButton = tk.Button(
-    TopFrame, text="↑", font=myFont, command=MoveYForwardSmall, height=1, width=2
-)
+    TopFrame,
+    text="↑",
+    font=myFont,
+    command=MoveYForwardSmall,
+    height=1,
+    width=2)
 YForwardSmallButton.pack(side=tk.TOP)
 
 YBackSmallButton = tk.Button(
@@ -2812,8 +2959,12 @@ XLeftSmallButton = tk.Button(
 XLeftSmallButton.pack(side=tk.LEFT)
 
 XRightSmallButton = tk.Button(
-    LeftFrame, text="→", font=myFont, command=MoveXRightSmall, height=1, width=2
-)
+    LeftFrame,
+    text="→",
+    font=myFont,
+    command=MoveXRightSmall,
+    height=1,
+    width=2)
 XRightSmallButton.pack(side=tk.LEFT)
 
 XRightBigButton = tk.Button(
@@ -2842,8 +2993,12 @@ ZUpSmallButton = tk.Button(
 ZUpSmallButton.pack(side=tk.RIGHT)
 
 ZDownSmallButton = tk.Button(
-    RightFrame, text="Z↓", font=myFont, command=MoveZDownSmall, height=1, width=2
-)
+    RightFrame,
+    text="Z↓",
+    font=myFont,
+    command=MoveZDownSmall,
+    height=1,
+    width=2)
 ZDownSmallButton.pack(side=tk.RIGHT)
 
 ZDownBigButton = tk.Button(

@@ -16,7 +16,7 @@ class Camera:
             return True
         return False
 
-    def setFocus(self, focus_step: int) -> bool:
+    def setSensorFocus(self, focus_step: int) -> bool:
         """
         Allegedly permits us to set the individual camera's focal length manually.  Not
         sure how to re-enable automatic mode yet.  We'll see.

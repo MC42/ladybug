@@ -15,6 +15,7 @@ Pillow = "^9.4.0"
 pyserial = "^3.5"
 tools = "^0.1.9"
 tsp = "^1.4.6"
+peewee = "^3.15.4"
 
 [tool.poetry.dev-dependencies]
 autoflake = "^2.0.0"
@@ -24,3 +25,39 @@ autopep8 = "^2.0.1"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.pylint.messages_control]
+disable = [
+    "arguments-differ",
+    "attribute-defined-outside-init",
+    "bad-continuation",
+    "blacklisted-name",
+    "duplicate-code",
+    "fixme",
+    "import-error",
+    "no-member",
+    "no-name-in-module",
+    "no-self-use",
+    "protected-access",
+    "stop-iteration-return",
+    "too-few-public-methods",
+    "too-many-arguments",
+    "too-many-branches",
+    "too-many-instance-attributes",
+    "too-many-lines",
+    "too-many-locals",
+    "too-many-return-statements",
+    "too-many-statements",
+    "abstract-method",
+    "chained-comparison",
+    "eval-used",
+    "exec-used",
+    "expression-not-assigned",
+    "global-statement",
+    "missing-docstring",
+    "redefined-argument-from-local",
+    "redefined-outer-name",
+    "reimported",
+    "too-many-ancestors",
+    "unexpected-special-method-signature",
+]

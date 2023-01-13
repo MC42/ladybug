@@ -21,4 +21,15 @@ motion.waitForOk()
 motion.deriveDimensions()
 import time
 
+# Calibration Steps
+# Get Machine Dimensions -> Store in config.json
+# verify camera ID -> store in config.json
+# place object under lens / move to / around
+# Autofocus to find focal areas / stacked (like we already do)
+# Capture more frames than we normally need to try and improve quality of calibration stuff and producing the watermark.
+# Produce "watermark" to remove lens dirt, etc.
+# SIFT / RANSAC to undistort camera lens (hopefully?)
+# Store camera lens calibration
+# Also produce MM/px with known size object(s).
+
 time.sleep(60)
