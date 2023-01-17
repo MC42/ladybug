@@ -56,8 +56,9 @@ class Camera:
 
     # This is to mirror the equivalent stub in the singlefile.
     def takePicture(self):
-        ret, frame = self.cap.read()
-        return frame
+        if self.cap is not None:
+            ret, frame = self.cap.read()
+            return frame
 
     def takeNPictures(self, quantity: int) -> list:
         """
