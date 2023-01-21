@@ -1,15 +1,20 @@
 import cv2
+import time
 
 
 class Camera:
     def __init__(self, camera_index):
         self.cap = cv2.VideoCapture(camera_index, cv2.CAP_DSHOW)
+
+        self.cap.read()
         # We use cv2.CAP_DSHOW to remove this oddball warning when iterating resolutions.
         # https://answers.opencv.org/question/234933/opencv-440modulesvideoiosrccap_msmfcpp-682-cvcapture_msmfinitstream-failed-to-set-mediatype-stream-0-640x480-30-mfvideoformat_rgb24unsupported-media/
+        # self.getHighestResolution(setResolution=True)
         self.setResolution()
+        time.sleep(1)
         self.takePicture()
 
-    def setResolution(self, resolution=(640, 480)) -> bool:
+    def setResolution(self, resolution=(1920, 1080)) -> bool:
         if self.cap is not None:
             self.cap.set(3, resolution[0])
             self.cap.set(4, resolution[1])

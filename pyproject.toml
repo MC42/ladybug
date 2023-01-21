@@ -16,6 +16,7 @@ pyserial = "^3.5"
 tools = "^0.1.9"
 tsp = "^1.4.6"
 peewee = "^3.15.4"
+tqdm = "^4.64.1"
 
 [tool.poetry.dev-dependencies]
 autoflake = "^2.0.0"

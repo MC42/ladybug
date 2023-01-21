@@ -10,7 +10,7 @@ def getVarianceOfLaplacian(image):
 
 def averageFrames(images: list):
     """Takes in a list of frames (images) and produces a single numpy.ndarray() (image) with the combined average.
-    
+
     Taken from here: https://leslietj.github.io/2020/06/28/How-to-Average-Images-Using-OpenCV/"""
     if len(images) == 0:
         raise Exception(
@@ -25,6 +25,8 @@ def averageFrames(images: list):
             alpha = 1.0 / (i + 1)
             beta = 1.0 - alpha
             avg_image = cv2.addWeighted(images[i], alpha, avg_image, beta, 0.0)
+
+    return avg_image
 
 
 def stableFrames(images: list):

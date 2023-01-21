@@ -1,6 +1,9 @@
 from pathlib import Path
 import json
 
+# https://docs.python.org/3/library/dataclasses.html
+# Be sure to verify that you produce serializable / deserializable stuff when using dataclasses.  
+# We'll also be able to Pickle the internals (ew) if need be for all of the images.  Not ideal, but w/e.
 
 class FileStore:
     def __init__(self):

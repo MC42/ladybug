@@ -66,7 +66,7 @@ colorama = {version = "*", markers = "platform_system == \"Windows\""}
 name = "colorama"
 version = "0.4.6"
 description = "Cross-platform colored terminal text."
-category = "dev"
+category = "main"
 optional = false
 python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,!=3.6.*,>=2.7"
 
@@ -388,6 +388,23 @@ pytils = "*"
 six = "*"
 
 [[package]]
+name = "tqdm"
+version = "4.64.1"
+description = "Fast, Extensible Progress Meter"
+category = "main"
+optional = false
+python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,>=2.7"
+
+[package.dependencies]
+colorama = {version = "*", markers = "platform_system == \"Windows\""}
+
+[package.extras]
+dev = ["py-make (>=0.1.0)", "twine", "wheel"]
+notebook = ["ipywidgets (>=6)"]
+slack = ["slack-sdk"]
+telegram = ["requests"]
+
+[[package]]
 name = "tsp"
 version = "1.4.6"
 description = "Making permafrost data effortless"
@@ -416,7 +433,7 @@ python-versions = ">=3.7"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "9ba5178d9ef086c8685b613b01b34fcdb41d5b07694a780c92d98b1daf6e9e9f"
+content-hash = "08d4e32be4f4aa038fc5467c57abbbe3b3994a626ab190a2db1443773bfb9966"
 
 [metadata.files]
 autoflake = []
@@ -462,5 +479,6 @@ six = [
 ]
 tomli = []
 tools = []
+tqdm = []
 tsp = []
 typing-extensions = []
